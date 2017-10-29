@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Чат</title>
+  <link rel="stylesheet" type="text/css" href="client/style.css" />
+</head>
+<body>
+	<div id="wrapper" class="wrapper">
+		<div class="left">
+			<div class="left__top">
+				<div class="left__photo">
+					<img id="photo" src="nophoto.jpg" alt="">
+				</div>
+				<div id="welcome" class="welcome">Добро пожаловать!</div>
+			</div>
+			<div id="participants" class="participants"></div>
+			<div id="userslist" class="list"></div>
+		</div>
+		<div class="right">
+
+			<div id="auth" class="ground">
+				<div class="dialog">
+					<div class="dialog__header">Авторизация</div>
+						<div class="dialog__form">
+							<input id="fio" type="text" placeholder="ФИО" required>
+							<input id="nick" type="text" placeholder="Ник" required>
+							<div id="submitbtn" class="dialog__submit"><button type="submit">Войти</button></div>
+						</div>
+					</div>
+			</div>
+			<div id="upload" class="ground hidden">
+				<div class="dialog">
+					<div class="dialog__header">Загрузка фото</div>
+					<div class="dialog__form">
+						<form method="post">
+							<input class="hidden" id="uploadinput" type="file">
+							<div class="upload" id="uploaddnd"><span>перетащите сюда фото</span><img src="" class="hidden" id="uploadimg"></div>
+							<div class="dialog__submit"><button id="cancelbtn">Отмена</button><button id="uploadbtn">Загрузить</button></div>
+						</form>
+					</div>
+				</div>
+			</div>
+			<div id="messageslist" class="messages"></div>
+			<div class="typing" id="typing"></div>
+			<div class="sendmessage"><input type="text" id="mymessage" placeholder="Введите сообщение"><button id="sendbtn">Отправить</button></div>
+
+		</div>
+	</div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client/index.js"></script>
+</body>
+</html>
