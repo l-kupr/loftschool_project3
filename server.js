@@ -19,14 +19,24 @@ io.on('connection', (socket) => {
 		for (let i = 0; i < users.length; i++) {
 			if (users[i].nick == user.nick) {
 				notFound = false;
+				users[i].active = true;
+				users[i].id = userId;
+				users[i].fio = user.fio;
+				if (users[i].photo) {
+					socket.emit('refreshPhoto', users[i].photo);
+				}
+				socket.emit('messages', messages);
 				break;
 			}
 		}
 		if (notFound) {
+			user.active = true;
 			users.push(user);
 			userFio = user.fio;
 		}
-		io.emit('refreshUsersList', users);
+		let activeUsers = users.filter(item => {return item.active});
+
+		io.emit('refreshUsersList', activeUsers);
 	});
 
 	socket.on('message', message => {
@@ -46,7 +56,8 @@ io.on('connection', (socket) => {
 	socket.on('disconnect', () => {
 		for (let i = 0; i < users.length; i++) {
 			if (userId == users[i].id) {
-				users.splice(i, 1);
+				//users.splice(i, 1);
+				users[i].active = false;
 				break;
 			}
 		}
@@ -64,6 +75,7 @@ io.on('connection', (socket) => {
 			if (err) {
 				throw err;
 			}
+			socket.emit('refreshPhoto', name);
 			let userChanged;
 
 			for (let i = 0; i < users.length; i++) {
@@ -73,9 +85,15 @@ io.on('connection', (socket) => {
 					break;
 				}
 			}
-			socket.emit('refreshPhoto', name);
+
 			if (userChanged) {
 				io.emit('refreshUserPhoto', userChanged);
+			}
+
+			for (let i = 0; i < messages.length; i++) {
+				if (messages[i].nick == userChanged.nick) {
+					messages[i].photo = name;
+				}
 			}
 		});
 	});

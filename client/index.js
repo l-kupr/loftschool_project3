@@ -2,6 +2,54 @@ let socket = io();
 let typingTimer = 0;
 let fileForUploading;
 let maxSize = 524288;
+let authorize = e => {
+	e.preventDefault();
+
+	let userFio = fio.value.replace(/^\s+|\s+$/g, '');
+	let userNick = nick.value.replace(/^\s+|\s+$/g, '');
+
+	if (userFio == '' || userNick == '') return;
+	
+	let user = { fio: userFio, nick: userNick };
+
+	welcome.textContent = userFio;
+	socket.emit('signin', user);
+	auth.style.display = 'none';
+	fio.value = '';
+	nick.value = '';
+}
+let addMessage = (message) => {
+	let photo = (message.photo ? (message.photo + '?' + randomInt(1,100)) : 'nophoto.jpg');
+	let newDiv = document.createElement('div');
+
+	newDiv.innerHTML = '<div class="message"><div class="user__photo"><img src="' + photo +
+				'"></div><div class="message__content"><div><span class="message__fio">' + 
+				message.fio + '</span>&nbsp;<span class="message__time">' + message.time +
+				'</span></div><div class="message__text">' + message.text + '</div></div></div>';
+
+	messageslist.appendChild(newDiv);
+	messageslist.scrollTop = messageslist.scrollHeight;	
+}
+let sendMessage = () => {
+	let msg = mymessage.value.replace(/^\s+|\s+$/g, '');
+
+	if (msg == '') return;
+	
+	let date = new Date();
+	let options = {
+		hour: 'numeric', minute: 'numeric', second: 'numeric'
+	};
+	let timeStr = new Intl.DateTimeFormat('ru-RU', options).format(date);
+	let message = { text: msg, time: timeStr };
+
+	socket.emit('message', message);
+	mymessage.value = '';
+}
+let randomInt = (min, max) => {
+    return Math.floor(Math.random() * (max - min)) + min;
+}
+
+
 
 socket.on('refreshUsersList', users => {
 	while (userslist.lastChild) {
@@ -32,16 +80,12 @@ socket.on('refreshUserPhoto', user => {
 
 });
 
-socket.on('message', message => {
-	let photo = (message.photo ? (message.photo + '?' + randomInt(1,100)) : 'nophoto.jpg');
-	let newDiv = document.createElement('div');
+socket.on('message', addMessage);
 
-	newDiv.innerHTML = '<div class="message"><div class="user__photo"><img src="' + photo +
-				'"></div><div class="message__content"><div><span class="message__fio">' + 
-				message.fio + '</span>&nbsp;<span class="message__time">' + message.time +
-				'</span></div><div class="message__text">' + message.text + '</div></div></div>';
-
-	messageslist.appendChild(newDiv);
+socket.on('messages', data => {
+	for(let i = 0; i < data.length; i++) {
+		addMessage (data[i]);
+	}
 });
 
 socket.on('typing', typingUser => {
@@ -51,42 +95,19 @@ socket.on('typing', typingUser => {
 	typingTimer = setTimeout(() => typing.classList.remove('typing-visible'), 1000);
 });
 
-submitbtn.addEventListener('click', e => {
-	e.preventDefault();
+submitbtn.addEventListener('click', authorize);
 
-	let userFio = fio.value.replace(/^\s+|\s+$/g, '');
-	let userNick = nick.value.replace(/^\s+|\s+$/g, '');
-
-	if (userFio == '' || userNick == '') return;
-	
-	let user = { fio: userFio, nick: userNick };
-
-	welcome.textContent = userFio;
-	socket.emit('signin', user);
-	auth.style.display = 'none';
-	fio.value = '';
-	nick.value = '';
+fio.addEventListener('keyup', e => {
+	if(e.keyCode == 13) {
+		authorize(e);
+	}
 });
 
-let sendMessage = () => {
-	let msg = mymessage.value.replace(/^\s+|\s+$/g, '');
-
-	if (msg == '') return;
-	
-	let date = new Date();
-	let options = {
-		hour: 'numeric', minute: 'numeric', second: 'numeric'
-	};
-	let timeStr = new Intl.DateTimeFormat('ru-RU', options).format(date);
-	let message = { text: msg, time: timeStr };
-
-	socket.emit('message', message);
-	mymessage.value = '';
-}
-
-let randomInt = (min, max) => {
-    return Math.floor(Math.random() * (max - min)) + min;
-}
+nick.addEventListener('keyup', e => {
+	if(e.keyCode == 13) {
+		authorize(e);
+	}
+});
 
 sendbtn.addEventListener('click', sendMessage);
 mymessage.addEventListener('keyup', e => {
